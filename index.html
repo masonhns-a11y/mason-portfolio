@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Mason Haynes — 3D Animator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0D0D0D;
+      --surface:#141414;
+      --surface2:#1A1A1A;
+      --rule:#242424;
+      --text:#EDE9E1;
+      --muted:#5C5A55;
+      --mid:#8A8780;
+      --teal:#2EE8C0;
+      --teal-dim:#1A8F77;
+      --teal-glow:rgba(46,232,192,0.12);
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;cursor:none;overflow-x:hidden}
+
+    /* SPOTLIGHT */
+    #spotlight{
+      position:fixed;top:0;left:0;width:800px;height:800px;border-radius:50%;
+      pointer-events:none;z-index:1;will-change:transform;
+      background:radial-gradient(circle,rgba(46,232,192,0.055) 0%,transparent 70%);
+      transform:translate3d(-400px,-400px,0);
+    }
+
+    /* CURSOR */
+    #cur-dot{
+      position:fixed;z-index:9999;pointer-events:none;top:0;left:0;
+      width:6px;height:6px;border-radius:50%;background:var(--teal);
+      will-change:transform;transition:opacity .15s;
+    }
+    #cur-ring{
+      position:fixed;z-index:9998;pointer-events:none;top:0;left:0;
+      width:36px;height:36px;border:1px solid rgba(46,232,192,0.5);border-radius:50%;
+      will-change:transform;
+      transition:width .3s cubic-bezier(.23,1,.32,1),height .3s cubic-bezier(.23,1,.32,1),
+                 border-radius .3s,border-color .2s,background .2s,opacity .2s;
+    }
+    #cur-text{
+      position:fixed;z-index:9999;pointer-events:none;top:0;left:0;
+      font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;
+      font-weight:500;color:var(--bg);white-space:nowrap;
+      opacity:0;transition:opacity .15s;font-family:'Outfit',sans-serif;
+    }
+    body.s-link #cur-ring{width:58px;height:58px;background:var(--teal);border-color:var(--teal)}
+    body.s-link #cur-dot{opacity:0}
+    body.s-link #cur-text{opacity:1}
+    body.s-play #cur-ring{width:76px;height:76px;background:var(--teal);border-color:var(--teal)}
+    body.s-play #cur-dot{opacity:0}
+    body.s-play #cur-text{opacity:1}
+    body.s-text #cur-ring{width:4px;height:28px;border-radius:2px;border-color:var(--teal);background:var(--teal)}
+    body.s-text #cur-dot{opacity:0}
+
+    /* NAV */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:200;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:0 48px;height:64px;
+      background:rgba(13,13,13,0.85);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--rule);
+    }
+    .n-logo{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--text);text-decoration:none}
+    .n-links{display:flex;list-style:none}
+    .n-links a{display:block;padding:0 20px;height:64px;line-height:64px;font-size:.7rem;letter-spacing:.08em;color:var(--muted);text-decoration:none;transition:color .2s;border-left:1px solid var(--rule)}
+    .n-links a:hover{color:var(--text)}
+    .n-pill{padding:6px 16px;border:1px solid var(--teal-dim);border-radius:100px;font-size:.62rem;letter-spacing:.08em;color:var(--teal)}
+
+    /* HERO */
+    #hero{
+      min-height:100vh;padding:64px 48px 72px;
+      display:grid;grid-template-rows:1fr auto;
+      border-bottom:1px solid var(--rule);overflow:hidden;
+    }
+    .h-center{display:flex;flex-direction:column;justify-content:center;padding-top:48px}
+    .h-tag{
+      display:inline-flex;align-items:center;gap:10px;
+      font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:40px;
+      opacity:0;animation:fadeIn .7s .2s ease forwards;
+    }
+    .h-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+    .h-name{
+      font-family:'DM Serif Display',serif;
+      font-size:clamp(60px,11vw,130px);line-height:.93;letter-spacing:-.02em;color:var(--text);
+      opacity:0;animation:fadeIn .8s .35s ease forwards;
+    }
+    .h-name .teal{color:var(--teal);font-style:normal}
+    .h-roles{
+      display:flex;flex-wrap:wrap;gap:8px;margin-top:40px;
+      opacity:0;animation:fadeIn .7s .55s ease forwards;
+    }
+    .h-role{padding:7px 16px;border:1px solid var(--rule);border-radius:100px;font-size:.68rem;letter-spacing:.06em;color:var(--mid);transition:border-color .25s,color .25s}
+    .h-role:hover{border-color:var(--teal-dim);color:var(--teal)}
+    .h-bottom{
+      display:flex;justify-content:space-between;align-items:flex-end;
+      padding-top:48px;border-top:1px solid var(--rule);
+      opacity:0;animation:fadeIn .7s .7s ease forwards;
+    }
+    .h-desc{max-width:400px;font-size:.92rem;line-height:1.85;color:var(--muted)}
+    .h-scroller{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+    .h-line{width:1px;height:48px;background:linear-gradient(to bottom,var(--teal),transparent)}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+    /* SHARED SECTION HEAD */
+    .s-head{display:flex;align-items:center;gap:16px;margin-bottom:48px}
+    .s-num{font-size:.62rem;letter-spacing:.2em;color:var(--teal);font-weight:500}
+    .s-title{font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.6rem);color:var(--text)}
+
+    /* SHOWREEL */
+    #reel{padding:80px 48px;border-bottom:1px solid var(--rule);contain:layout style}
+    .reel-wrap{
+      position:relative;border-radius:8px;overflow:hidden;
+      box-shadow:0 0 0 1px var(--rule),0 32px 80px rgba(0,0,0,.6);
+    }
+    .reel-wrap video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+    .reel-ov{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(13,13,13,.4);backdrop-filter:blur(2px);transition:opacity .35s;
+    }
+    .reel-ov.gone{opacity:0;pointer-events:none}
+    .play-ring{
+      width:80px;height:80px;border-radius:50%;
+      border:1px solid rgba(46,232,192,.5);
+      display:flex;align-items:center;justify-content:center;
+      transition:transform .3s,border-color .3s,background .3s;
+    }
+    .reel-wrap:hover .play-ring{transform:scale(1.1);border-color:var(--teal);background:var(--teal-glow)}
+
+    /* ABOUT */
+    #about{padding:80px 48px;border-bottom:1px solid var(--rule)}
+    .about-layout{display:grid;grid-template-columns:1fr 360px;gap:80px;align-items:start}
+    .about-text p{font-size:1rem;line-height:1.9;color:var(--mid)}
+    .about-text p+p{margin-top:18px}
+    .about-text strong{color:var(--text);font-weight:400}
+    .about-cards{display:flex;flex-direction:column;gap:2px}
+    .a-card{
+      background:var(--surface);border:1px solid var(--rule);border-radius:6px;
+      padding:20px 24px;display:flex;justify-content:space-between;align-items:baseline;
+      opacity:0;transform:translateX(20px);transition:opacity .5s,transform .5s,background .2s;
+    }
+    .a-card.vis{opacity:1;transform:none}
+    .a-card:hover{background:var(--surface2)}
+    .a-card-k{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex-shrink:0;padding-right:16px}
+    .a-card-v{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--text);text-align:right}
+
+    /* BRANDS */
+    #brands{padding:0 48px;border-bottom:1px solid var(--rule);background:var(--surface);overflow:hidden}
+    .brands-inner{display:flex;align-items:center;height:56px}
+    .brands-label{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap;padding-right:32px;border-right:1px solid var(--rule);margin-right:32px;flex-shrink:0}
+    .brands-scroll{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent,black 5%,black 95%,transparent)}
+    .brands-track{display:flex;width:max-content;animation:slide 24s linear infinite}
+    @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    .b-item{
+      padding:0 28px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+      color:var(--muted);white-space:nowrap;border-right:1px solid var(--rule);
+      height:56px;display:flex;align-items:center;text-decoration:none;cursor:none;
+      transition:color .2s;
+    }
+    .b-item:hover{color:var(--teal)}
+
+    /* CREDITS */
+    #credits{padding:80px 48px;border-bottom:1px solid var(--rule)}
+    .cr-entry{
+      display:grid;grid-template-columns:280px 1fr;border-bottom:1px solid var(--rule);
+      opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;
+    }
+    .cr-entry:first-of-type{border-top:1px solid var(--rule)}
+    .cr-entry.vis{opacity:1;transform:none}
+    .cr-left{padding:36px 40px 36px 0;border-right:1px solid var(--rule)}
+    .cr-year{font-size:.62rem;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}
+    .cr-co{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--text)}
+    .cr-role{font-size:.68rem;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+    .cr-right{padding:36px 0 36px 48px}
+    .cr-item{display:flex;gap:14px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:.88rem;color:var(--mid);line-height:1.55}
+    .cr-item:last-child{border-bottom:none}
+    .cr-item::before{content:'→';color:var(--teal-dim);flex-shrink:0;font-size:.8rem}
+    .cr-item strong{color:var(--text);font-weight:400}
+    .badge{display:inline-block;padding:2px 9px;border-radius:4px;background:rgba(46,232,192,.08);border:1px solid rgba(46,232,192,.2);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-left:6px;vertical-align:middle}
+
+    /* SKILLS */
+    #skills{padding:80px 48px;border-bottom:1px solid var(--rule)}
+    .sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--rule);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+    .sk-col{background:var(--surface);padding:36px 32px;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s}
+    .sk-col.vis{opacity:1;transform:none}
+    .sk-col-h{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--rule)}
+    .sk-item{padding:10px 0;border-bottom:1px solid var(--rule);font-size:.88rem;color:var(--mid);transition:color .2s,padding-left .2s}
+    .sk-item:last-child{border-bottom:none;padding-bottom:0}
+    .sk-item:hover{color:var(--text);padding-left:6px}
+
+    /* CV */
+    #cv{
+      padding:80px 48px;border-bottom:1px solid var(--rule);
+      display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;
+    }
+    .cv-tag{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+    .cv-title{font-family:'DM Serif Display',serif;font-size:clamp(2rem,4vw,3.2rem);line-height:1.1;color:var(--text)}
+    .cv-title em{font-style:italic;color:var(--teal)}
+    .cv-right p{font-size:.9rem;line-height:1.8;color:var(--muted);margin-bottom:32px}
+    .btn-teal{
+      display:inline-flex;align-items:center;gap:12px;
+      padding:14px 32px;background:var(--teal);
+      color:var(--bg);font-family:'Outfit',sans-serif;
+      font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+      text-decoration:none;border-radius:6px;transition:opacity .2s,transform .2s;
+    }
+    .btn-teal:hover{opacity:.88;transform:translateY(-1px)}
+
+    /* REFERENCES */
+    #references{padding:80px 48px;border-bottom:1px solid var(--rule)}
+    .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--rule);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+    .ref-card{
+      background:var(--surface);padding:52px 40px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+      text-align:center;transition:background .2s;
+    }
+    .ref-card:hover{background:var(--surface2)}
+    .ref-top{display:flex;flex-direction:column;align-items:center;gap:20px}
+    .ref-initial{
+      width:64px;height:64px;border-radius:50%;flex-shrink:0;
+      background:rgba(46,232,192,0.08);border:1px solid rgba(46,232,192,0.2);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--teal);
+      margin-bottom:4px;
+    }
+    .ref-name{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--text);margin-bottom:6px}
+    .ref-role{font-size:.72rem;color:var(--mid);letter-spacing:.03em}
+    .ref-company{font-size:.72rem;color:var(--teal);letter-spacing:.03em;margin-top:4px}
+    .ref-note{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:28px;padding-top:28px;border-top:1px solid var(--rule);width:100%}
+
+    /* CONTACT */
+    #contact{padding:80px 48px}
+    .ct-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
+    .ct-big{font-family:'DM Serif Display',serif;font-size:clamp(2.5rem,5vw,4.5rem);line-height:1.05;color:var(--text);margin-top:24px}
+    .ct-big em{font-style:italic;color:var(--teal);display:block}
+    .ct-desc{font-size:.9rem;line-height:1.8;color:var(--muted);margin-top:20px;max-width:340px}
+    .ct-links{display:flex;flex-direction:column}
+    .ct-link{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--rule);text-decoration:none;transition:padding-left .2s}
+    .ct-link:first-child{border-top:1px solid var(--rule)}
+    .ct-link:hover{padding-left:10px}
+    .ct-link-label{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;transition:color .2s}
+    .ct-link-val{font-size:.95rem;color:var(--text);transition:color .2s}
+    .ct-link-arr{font-size:1.2rem;color:var(--muted);transition:transform .25s,color .2s;align-self:center}
+    .ct-link:hover .ct-link-label,.ct-link:hover .ct-link-arr,.ct-link:hover .ct-link-val{color:var(--teal)}
+    .ct-link:hover .ct-link-arr{transform:translateX(8px)}
+
+    /* FOOTER */
+    footer{padding:24px 48px;border-top:1px solid var(--rule);display:flex;justify-content:space-between}
+    footer p{font-size:.62rem;letter-spacing:.1em;color:var(--muted)}
+
+    /* RESPONSIVE */
+    @media(max-width:900px){
+      nav{padding:0 20px}
+      .n-links,.n-pill{display:none}
+      #hero,#reel,#about,#credits,#skills,#cv,#references,#contact,#brands,footer{padding-left:20px;padding-right:20px}
+      .about-layout,.ct-layout{grid-template-columns:1fr;gap:40px}
+      #cv{grid-template-columns:1fr;gap:40px}
+      .cr-entry{grid-template-columns:1fr}
+      .cr-left{border-right:none;border-bottom:1px solid var(--rule);padding-right:0}
+      .cr-right{padding-left:0}
+      .sk-grid,.ref-grid{grid-template-columns:1fr}
+      footer{flex-direction:column;gap:8px}
+    }
+  </style>
+</head>
+<body>
+
+<div id="spotlight"></div>
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+<div id="cur-text"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="n-logo" href="#">Mason Haynes</a>
+  <ul class="n-links">
+    <li><a href="#reel">Showreel</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#credits">Credits</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#references">References</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="n-pill">Available for hire</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="h-center">
+    <div class="h-tag"><div class="h-tag-dot"></div>3D Animator · Visualisation Artist</div>
+    <h1 class="h-name">Mason<br><span class="teal">Haynes</span></h1>
+    <div class="h-roles">
+      <div class="h-role">Previs</div>
+      <div class="h-role">Layout</div>
+      <div class="h-role">Character Animation</div>
+      <div class="h-role">Creature Animation</div>
+      <div class="h-role">Film · TV · Games · Ads</div>
+    </div>
+  </div>
+  <div class="h-bottom">
+    <p class="h-desc">Over three years of studio and freelance animation work across award-winning productions — from BAFTA-nominated shorts to upcoming Disney features.</p>
+    <div class="h-scroller"><div class="h-line"></div>Scroll</div>
+  </div>
+</section>
+
+<!-- SHOWREEL -->
+<section id="reel">
+  <div class="s-head"><span class="s-num">01 /</span><h2 class="s-title">Showreel</h2></div>
+  <div class="reel-wrap" id="reel-box">
+    <video id="vid" preload="metadata" loop playsinline>
+      <source src="showreel.mp4" type="video/mp4"/>
+    </video>
+    <div class="reel-ov" id="reel-ov">
+      <div class="play-ring" id="play-btn">
+        <svg width="20" height="22" viewBox="0 0 20 22" fill="none">
+          <path d="M2 1.5L18 11L2 20.5V1.5Z" fill="#2EE8C0"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="s-head"><span class="s-num">02 /</span><h2 class="s-title">About</h2></div>
+  <div class="about-layout">
+    <div class="about-text">
+      <p>A dynamic and versatile animator with over <strong>three years of professional experience</strong> delivering character and creature animation for <strong>film, television, advertising, and games.</strong></p>
+      <p>Previously a <strong>Visualisation Artist at The Third Floor</strong> on two upcoming Disney feature productions — handling scene layout, camera animation, and character blocking within a major studio pipeline.</p>
+      <p>Highly proficient in <strong>Autodesk Maya</strong> and its ecosystem, with real-time experience in <strong>Unreal Engine 5</strong> for previs. Strong track record on high-profile titles including a <strong>BAFTA-nominated short film</strong> selected for the Annecy Film Festival.</p>
+      <p>Currently mentoring the next generation of animators at <strong>Ravensbourne University</strong> through live sessions, recorded content, and hands-on feedback.</p>
+    </div>
+    <div class="about-cards">
+      <div class="a-card"><span class="a-card-k">Experience</span><span class="a-card-v">3+ years</span></div>
+      <div class="a-card"><span class="a-card-k">Productions</span><span class="a-card-v">10+</span></div>
+      <div class="a-card"><span class="a-card-k">Recognition</span><span class="a-card-v">BAFTA nominated</span></div>
+      <div class="a-card"><span class="a-card-k">Education</span><span class="a-card-v">First Class BA</span></div>
+      <div class="a-card"><span class="a-card-k">Specialism</span><span class="a-card-v">Previs · Layout · Anim.</span></div>
+      <div class="a-card"><span class="a-card-k">Based</span><span class="a-card-v">London / Remote</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<div id="brands">
+  <div class="brands-inner">
+    <div class="brands-label">Featured with &amp; for</div>
+    <div class="brands-scroll">
+      <div class="brands-track">
+        <div style="display:flex">
+          <a class="b-item" href="https://www.disney.com" target="_blank" rel="noopener noreferrer">Disney</a>
+          <a class="b-item" href="https://www.thethirdfloor.net" target="_blank" rel="noopener noreferrer">The Third Floor</a>
+          <a class="b-item" href="https://www.locksmithanimation.com" target="_blank" rel="noopener noreferrer">Locksmith Animation</a>
+          <a class="b-item" href="https://www.dneg.com" target="_blank" rel="noopener noreferrer">DNEG</a>
+          <a class="b-item" href="https://www.ritzyanimation.com" target="_blank" rel="noopener noreferrer">Ritzy Animation</a>
+          <a class="b-item" href="https://www.livgolf.com" target="_blank" rel="noopener noreferrer">LIV Golf</a>
+          <a class="b-item" href="https://www.playstation.com" target="_blank" rel="noopener noreferrer">PlayStation</a>
+          <a class="b-item" href="https://www.xbox.com" target="_blank" rel="noopener noreferrer">Xbox</a>
+          <a class="b-item" href="https://store.steampowered.com" target="_blank" rel="noopener noreferrer">Steam</a>
+          <a class="b-item" href="https://www.nowtv.com" target="_blank" rel="noopener noreferrer">Now TV</a>
+        </div>
+        <div style="display:flex" aria-hidden="true">
+          <a class="b-item" href="https://www.disney.com" target="_blank" rel="noopener noreferrer">Disney</a>
+          <a class="b-item" href="https://www.thethirdfloor.net" target="_blank" rel="noopener noreferrer">The Third Floor</a>
+          <a class="b-item" href="https://www.locksmithanimation.com" target="_blank" rel="noopener noreferrer">Locksmith Animation</a>
+          <a class="b-item" href="https://www.dneg.com" target="_blank" rel="noopener noreferrer">DNEG</a>
+          <a class="b-item" href="https://www.ritzyanimation.com" target="_blank" rel="noopener noreferrer">Ritzy Animation</a>
+          <a class="b-item" href="https://www.livgolf.com" target="_blank" rel="noopener noreferrer">LIV Golf</a>
+          <a class="b-item" href="https://www.playstation.com" target="_blank" rel="noopener noreferrer">PlayStation</a>
+          <a class="b-item" href="https://www.xbox.com" target="_blank" rel="noopener noreferrer">Xbox</a>
+          <a class="b-item" href="https://store.steampowered.com" target="_blank" rel="noopener noreferrer">Steam</a>
+          <a class="b-item" href="https://www.nowtv.com" target="_blank" rel="noopener noreferrer">Now TV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREDITS -->
+<section id="credits">
+  <div class="s-head"><span class="s-num">03 /</span><h2 class="s-title">Selected Credits</h2></div>
+
+  <div class="cr-entry">
+    <div class="cr-left">
+      <div class="cr-year">2025 — 2026</div>
+      <div class="cr-co">The Third Floor</div>
+      <div class="cr-role">Visualisation Artist</div>
+    </div>
+    <div class="cr-right">
+      <div class="cr-item"><span><strong>Two upcoming Disney features (2026)</strong> — scene layout, camera animation, and character blocking within a major studio pipeline</span></div>
+    </div>
+  </div>
+
+  <div class="cr-entry">
+    <div class="cr-left">
+      <div class="cr-year">2022 — 2025</div>
+      <div class="cr-co">Ritzy Animation</div>
+      <div class="cr-role">3D Character &amp; Creature Animator</div>
+    </div>
+    <div class="cr-right">
+      <div class="cr-item"><span><strong>Obki</strong> — Seasons 2 &amp; 3, series character animation <span class="badge">Now TV</span></span></div>
+      <div class="cr-item"><span><strong>Soul Reaver 1 &amp; 2 Remastered</strong> — Announcement trailer <span class="badge">PlayStation</span><span class="badge">Xbox</span><span class="badge">Steam</span></span></div>
+      <div class="cr-item"><span><strong>Cardboard</strong> — BAFTA nominated feature short · Annecy Film Festival official selection <span class="badge">BAFTA</span></span></div>
+      <div class="cr-item"><span><strong>Bleacher Report</strong> — Euros 2024 campaign</span></div>
+      <div class="cr-item"><span><strong>LIV Golf League</strong> — Advertising campaign</span></div>
+      <div class="cr-item"><span>+1 unannounced project</span></div>
+    </div>
+  </div>
+
+  <div class="cr-entry">
+    <div class="cr-left">
+      <div class="cr-year">2022 — 2025</div>
+      <div class="cr-co">Freelance</div>
+      <div class="cr-role">3D Character &amp; Creature Animator</div>
+    </div>
+    <div class="cr-right">
+      <div class="cr-item"><span><strong>Gentle Mates In Texas</strong> — Rocket League World Championship</span></div>
+      <div class="cr-item"><span><strong>Montuse Ltd</strong> — Oslo Fashion Event 2024</span></div>
+    </div>
+  </div>
+
+  <div class="cr-entry">
+    <div class="cr-left">
+      <div class="cr-year">2024 — Present</div>
+      <div class="cr-co">Ravensbourne University</div>
+      <div class="cr-role">Industry Mentor — 3D Animation</div>
+    </div>
+    <div class="cr-right">
+      <div class="cr-item"><span>Mentoring animation students through live and pre-recorded sessions</span></div>
+      <div class="cr-item"><span>Tips &amp; Tricks video content with live demonstrations</span></div>
+      <div class="cr-item"><span>Ongoing post-graduation support</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="s-head"><span class="s-num">04 /</span><h2 class="s-title">Software &amp; Skills</h2></div>
+  <div class="sk-grid">
+    <div class="sk-col">
+      <div class="sk-col-h">Animation &amp; Pipeline</div>
+      <div class="sk-item">Autodesk Maya</div>
+      <div class="sk-item">Animbot</div>
+      <div class="sk-item">BroTools</div>
+      <div class="sk-item">StudioLibrary</div>
+      <div class="sk-item">Deadline</div>
+      <div class="sk-item">After Effects</div>
+      <div class="sk-item">Adobe Premiere Pro</div>
+    </div>
+    <div class="sk-col">
+      <div class="sk-col-h">Real-Time / Engine</div>
+      <div class="sk-item">Unreal Engine 5</div>
+      <div class="sk-item">Previs &amp; Techvis</div>
+      <div class="sk-item">Real-time Workflows</div>
+    </div>
+    <div class="sk-col">
+      <div class="sk-col-h">Production</div>
+      <div class="sk-item">Layout &amp; Scene Building</div>
+      <div class="sk-item">Camera Animation</div>
+      <div class="sk-item">Character Animation</div>
+      <div class="sk-item">Creature Animation</div>
+      <div class="sk-item">Shot Splitting &amp; Framing</div>
+      <div class="sk-item">Director Collaboration</div>
+      <div class="sk-item">Junior Mentoring</div>
+    </div>
+  </div>
+</section>
+
+<!-- CV -->
+<section id="cv">
+  <div class="cv-left">
+    <div class="cv-tag">Curriculum Vitae</div>
+    <div class="cv-title">Download my<br><em>full résumé</em></div>
+  </div>
+  <div class="cv-right">
+    <p>Production history, technical skills, education, and professional background — everything a studio or recruiter needs, in a single document.</p>
+    <a class="btn-teal" href="Mason_Haynes_CV.pdf" download="Mason_Haynes_CV.pdf" data-lbl="Download">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1v8M4 7l3 3 3-3M1 13h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      Download CV
+    </a>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section id="references">
+  <div class="s-head"><span class="s-num">05 /</span><h2 class="s-title">References</h2></div>
+  <div class="ref-grid">
+
+    <div class="ref-card">
+      <div class="ref-top">
+        <div class="ref-initial">JB</div>
+        <div>
+          <div class="ref-name">James Burr</div>
+          <div class="ref-role">Visualisation Supervisor</div>
+          <div class="ref-company">The Third Floor Inc.</div>
+        </div>
+      </div>
+      <div class="ref-note">Available upon request</div>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-top">
+        <div class="ref-initial">DE</div>
+        <div>
+          <div class="ref-name">Dan Edgley</div>
+          <div class="ref-role">Co-Founder</div>
+          <div class="ref-company">Ritzy Animation</div>
+        </div>
+      </div>
+      <div class="ref-note">Available upon request</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="ct-layout">
+    <div class="ct-left">
+      <div class="s-head" style="margin-bottom:0"><span class="s-num">06 /</span><h2 class="s-title">Get in touch</h2></div>
+      <div class="ct-big">Open to new<br>projects &amp; roles.<br><em>Let's talk.</em></div>
+      <p class="ct-desc">Based in London, available remote worldwide. Studio pipelines and freelance engagements welcome.</p>
+    </div>
+    <div class="ct-links">
+      <a class="ct-link" href="mailto:mason.hns@gmail.com" data-lbl="Email">
+        <div><div class="ct-link-label">Email</div><div class="ct-link-val">mason.hns@gmail.com</div></div>
+        <div class="ct-link-arr">→</div>
+      </a>
+      <a class="ct-link" href="Mason_Haynes_CV.pdf" download="Mason_Haynes_CV.pdf" data-lbl="Download">
+        <div><div class="ct-link-label">CV</div><div class="ct-link-val">Download résumé (PDF)</div></div>
+        <div class="ct-link-arr">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 Mason Haynes. All rights reserved.</p>
+  <p>London / Remote · 3D Animator · Visualisation Artist</p>
+</footer>
+
+<script>
+  const spotlight = document.getElementById('spotlight');
+  const dot       = document.getElementById('cur-dot');
+  const ring      = document.getElementById('cur-ring');
+  const curText   = document.getElementById('cur-text');
+  const vid       = document.getElementById('vid');
+
+  let mx = -400, my = -400, rx = -400, ry = -400;
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive:true });
+
+  (function tick() {
+    spotlight.style.transform = `translate3d(calc(${mx}px - 400px),calc(${my}px - 400px),0)`;
+    dot.style.transform       = `translate3d(calc(${mx}px - 50%),calc(${my}px - 50%),0)`;
+    rx += (mx - rx) * 0.1;
+    ry += (my - ry) * 0.1;
+    ring.style.transform    = `translate3d(calc(${rx}px - 50%),calc(${ry}px - 50%),0)`;
+    curText.style.transform = `translate3d(calc(${rx}px - 50%),calc(${ry}px - 50%),0)`;
+    requestAnimationFrame(tick);
+  })();
+
+  document.querySelectorAll('a, button, .h-role, .b-item, #reel-box, .reel-wrap').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      const isReel = el.id === 'reel-box' || el.classList.contains('reel-wrap') || el.closest('#reel-box,.reel-wrap');
+      if (isReel) {
+        document.body.className = 's-play';
+        curText.textContent = vid.paused ? 'Play' : 'Pause';
+      } else {
+        document.body.className = 's-link';
+        curText.textContent = el.dataset.lbl || 'View';
+      }
+    });
+    el.addEventListener('mouseleave', () => { document.body.className = ''; });
+  });
+
+  document.querySelectorAll('p, .about-text, .cr-item, .h-desc, .ct-desc').forEach(el => {
+    el.addEventListener('mouseenter', () => { document.body.className = 's-text'; });
+    el.addEventListener('mouseleave', () => { document.body.className = ''; });
+  });
+
+  const ov = document.getElementById('reel-ov');
+  document.getElementById('play-btn').addEventListener('click', () => { vid.play(); ov.classList.add('gone'); });
+  document.getElementById('reel-box').addEventListener('click', e => {
+    if (e.target.closest('#play-btn')) return;
+    if (!vid.paused) { vid.pause(); ov.classList.remove('gone'); curText.textContent = 'Play'; }
+  });
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) { setTimeout(() => e.target.classList.add('vis'), i * 80); obs.unobserve(e.target); }
+    });
+  }, { threshold:0.1 });
+  document.querySelectorAll('.a-card, .cr-entry, .sk-col').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
