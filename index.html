@@ -254,6 +254,12 @@
     footer{padding:24px 48px;border-top:1px solid var(--rule);display:flex;justify-content:space-between}
     footer p{font-size:.62rem;letter-spacing:.1em;color:var(--muted)}
 
+    /* TOUCH / MOBILE — hide custom cursor */
+    @media(hover:none),(pointer:coarse){
+      body{cursor:auto}
+      #spotlight,#cur-dot,#cur-ring,#cur-text{display:none!important}
+    }
+
     /* RESPONSIVE */
     @media(max-width:900px){
       nav{padding:0 20px}
