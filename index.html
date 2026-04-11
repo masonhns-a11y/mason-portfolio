@@ -588,10 +588,12 @@
   });
 
   const ov = document.getElementById('reel-ov');
-  document.getElementById('play-btn').addEventListener('click', () => { vid.play(); ov.classList.add('gone'); });
+  function playReel() { vid.muted = false; vid.play().catch(() => { vid.muted = true; vid.play(); }); ov.classList.add('gone'); }
+  ov.addEventListener('click', playReel);
   document.getElementById('reel-box').addEventListener('click', e => {
-    if (e.target.closest('#play-btn')) return;
-    if (!vid.paused) { vid.pause(); ov.classList.remove('gone'); curText.textContent = 'Play'; }
+    if (e.target.closest('#reel-ov')) return;
+    if (vid.paused) { playReel(); }
+    else { vid.pause(); ov.classList.remove('gone'); curText.textContent = 'Play'; }
   });
 
   const obs = new IntersectionObserver(entries => {
