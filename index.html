@@ -148,6 +148,19 @@
     .rc-slider{-webkit-appearance:none;appearance:none;width:80px;height:3px;border-radius:2px;background:var(--rule);outline:none;cursor:none}
     .rc-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
     .rc-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
+    .reel-timebar{
+      position:absolute;left:16px;right:16px;bottom:16px;z-index:9;
+      display:flex;align-items:center;gap:12px;
+      padding:8px 16px;border-radius:100px;
+      background:rgba(13,13,13,0.75);backdrop-filter:blur(10px);
+      border:1px solid var(--rule);
+      opacity:0.6;transition:opacity .2s;max-width:calc(100% - 200px);
+    }
+    .reel-wrap:hover .reel-timebar,.reel-timebar:hover{opacity:1}
+    .rt-time{font-size:.62rem;letter-spacing:.08em;color:var(--mid);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:32px}
+    .rt-slider{-webkit-appearance:none;appearance:none;flex:1;height:3px;border-radius:2px;background:var(--rule);outline:none;cursor:none}
+    .rt-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
+    .rt-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
 
     /* ABOUT */
     #about{padding:80px 48px;border-bottom:1px solid var(--rule)}
@@ -356,6 +369,11 @@
         </svg>
       </button>
       <input type="range" class="rc-slider" id="vol-slider" min="0" max="1" step="0.01" value="1"/>
+    </div>
+    <div class="reel-timebar" id="reel-timebar">
+      <span class="rt-time" id="rt-current">0:00</span>
+      <input type="range" class="rt-slider" id="time-slider" min="0" max="100" step="0.01" value="0"/>
+      <span class="rt-time" id="rt-duration">0:00</span>
     </div>
     <div class="reel-ov" id="reel-ov">
       <div class="play-ring" id="play-btn">
@@ -721,6 +739,31 @@
 
   // Prevent volume controls from triggering video pause
   document.getElementById('reel-controls').addEventListener('click', e => e.stopPropagation());
+
+  // Time slider
+  const timeSlider = document.getElementById('time-slider');
+  const rtCurrent = document.getElementById('rt-current');
+  const rtDuration = document.getElementById('rt-duration');
+  const timebar = document.getElementById('reel-timebar');
+
+  function fmt(s) {
+    if (!isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  vid.addEventListener('loadedmetadata', () => { rtDuration.textContent = fmt(vid.duration); });
+  vid.addEventListener('timeupdate', () => {
+    if (vid.duration) {
+      timeSlider.value = (vid.currentTime / vid.duration) * 100;
+      rtCurrent.textContent = fmt(vid.currentTime);
+    }
+  });
+  timeSlider.addEventListener('input', () => {
+    if (vid.duration) vid.currentTime = (timeSlider.value / 100) * vid.duration;
+  });
+  timebar.addEventListener('click', e => e.stopPropagation());
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach((e, i) => {
