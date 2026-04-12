@@ -62,13 +62,13 @@
     /* NAV */
     nav{
       position:fixed;top:0;left:0;right:0;z-index:200;
-      display:flex;justify-content:space-between;align-items:center;
+      display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
       padding:0 48px;height:64px;
       background:rgba(13,13,13,0.85);backdrop-filter:blur(16px);
       border-bottom:1px solid var(--rule);
     }
-    .n-logo{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--text);text-decoration:none}
-    .n-links{display:flex;list-style:none}
+    .n-logo{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--text);text-decoration:none;justify-self:start}
+    .n-links{display:flex;list-style:none;justify-self:center}
     .n-links a{display:block;padding:0 20px;height:64px;line-height:64px;font-size:.7rem;letter-spacing:.08em;color:var(--muted);text-decoration:none;transition:color .2s;border-left:1px solid var(--rule)}
     .n-links a:hover{color:var(--text)}
     .n-pill{padding:6px 16px;border:1px solid var(--teal-dim);border-radius:100px;font-size:.62rem;letter-spacing:.08em;color:var(--teal)}
