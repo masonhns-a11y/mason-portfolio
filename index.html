@@ -145,9 +145,11 @@
     .reel-wrap:hover .reel-controls,.reel-controls:hover{opacity:1}
     .rc-mute{background:none;border:none;color:var(--muted);cursor:none;padding:0;display:flex;align-items:center;transition:color .2s}
     .rc-mute:hover{color:var(--teal)}
-    .rc-slider{-webkit-appearance:none;appearance:none;width:80px;height:3px;border-radius:2px;background:var(--rule);outline:none;cursor:none}
-    .rc-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
-    .rc-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--teal);cursor:none;border:none}
+    .rc-slider{-webkit-appearance:none;appearance:none;width:80px;height:18px;padding:7px 0;background:transparent;outline:none;cursor:pointer}
+    .rc-slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--rule)}
+    .rc-slider::-moz-range-track{height:4px;border-radius:2px;background:var(--rule)}
+    .rc-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--teal);cursor:pointer;border:none;margin-top:-5px}
+    .rc-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--teal);cursor:pointer;border:none}
     .reel-timebar{
       position:absolute;left:16px;right:16px;bottom:16px;z-index:20;
       display:flex;align-items:center;gap:12px;
