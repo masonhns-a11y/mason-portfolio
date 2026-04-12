@@ -155,8 +155,9 @@
     .brands-inner{display:flex;align-items:center;height:56px}
     .brands-label{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap;padding-right:32px;border-right:1px solid var(--rule);margin-right:32px;flex-shrink:0}
     .brands-scroll{overflow:hidden;flex:1;mask-image:linear-gradient(to right,transparent,black 5%,black 95%,transparent)}
-    .brands-track{display:flex;width:max-content;animation:slide 24s linear infinite}
-    @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    .brands-track{display:flex;width:max-content;animation:slide 24s linear infinite;gap:0}
+    .brands-track>div{flex-shrink:0}
+    @keyframes slide{from{transform:translateX(0)}to{transform:translateX(calc(-100% / 3))}}
     .b-item{
       padding:0 28px;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
       color:var(--muted);white-space:nowrap;border-right:1px solid var(--rule);
@@ -360,6 +361,18 @@
     <div class="brands-scroll">
       <div class="brands-track">
         <div style="display:flex">
+          <a class="b-item" href="https://www.disney.com" target="_blank" rel="noopener noreferrer">Disney</a>
+          <a class="b-item" href="https://thethirdfloorinc.com/" target="_blank" rel="noopener noreferrer">The Third Floor</a>
+          <a class="b-item" href="https://www.locksmithanimation.com" target="_blank" rel="noopener noreferrer">Locksmith Animation</a>
+          <a class="b-item" href="https://www.dneg.com" target="_blank" rel="noopener noreferrer">DNEG</a>
+          <a class="b-item" href="https://www.ritzyanimation.com" target="_blank" rel="noopener noreferrer">Ritzy Animation</a>
+          <a class="b-item" href="https://www.livgolf.com" target="_blank" rel="noopener noreferrer">LIV Golf</a>
+          <a class="b-item" href="https://www.playstation.com" target="_blank" rel="noopener noreferrer">PlayStation</a>
+          <a class="b-item" href="https://www.xbox.com" target="_blank" rel="noopener noreferrer">Xbox</a>
+          <a class="b-item" href="https://store.steampowered.com" target="_blank" rel="noopener noreferrer">Steam</a>
+          <a class="b-item" href="https://www.nowtv.com" target="_blank" rel="noopener noreferrer">Now TV</a>
+        </div>
+        <div style="display:flex" aria-hidden="true">
           <a class="b-item" href="https://www.disney.com" target="_blank" rel="noopener noreferrer">Disney</a>
           <a class="b-item" href="https://thethirdfloorinc.com/" target="_blank" rel="noopener noreferrer">The Third Floor</a>
           <a class="b-item" href="https://www.locksmithanimation.com" target="_blank" rel="noopener noreferrer">Locksmith Animation</a>
